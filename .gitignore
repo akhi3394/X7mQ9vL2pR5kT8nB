@@ -7,3 +7,4 @@ backend/app/__pycache__/
 backend/tests/__pycache__/
 .pytest_cache/
 *.py[cod]
+DEVELOPER_GUIDE.md
