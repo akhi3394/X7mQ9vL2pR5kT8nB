@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   Activity, ArrowDownRight, ArrowUpRight, BarChart3, CalendarDays, ChevronDown,
   CircleHelp, Clock3, Download, ExternalLink, Gauge, Leaf, Menu, Moon, RefreshCw,
@@ -37,6 +37,26 @@ export default function App() {
   const [dark, setDark] = useState(true)
   const [showMethod, setShowMethod] = useState(false)
   const [mobileNav, setMobileNav] = useState(false)
+  const [activeSection, setActiveSection] = useState('overview')
+
+  useEffect(() => {
+    const updateActiveSection = () => {
+      const sections = ['overview', 'accuracy', 'uncertainty']
+      const current = sections.reduce((active, sectionId) => {
+        const section = document.getElementById(sectionId)
+        return section && section.getBoundingClientRect().top <= 160 ? sectionId : active
+      }, 'overview')
+      setActiveSection(current)
+    }
+
+    updateActiveSection()
+    window.addEventListener('scroll', updateActiveSection, { passive: true })
+    window.addEventListener('resize', updateActiveSection)
+    return () => {
+      window.removeEventListener('scroll', updateActiveSection)
+      window.removeEventListener('resize', updateActiveSection)
+    }
+  }, [])
 
   const filteredPoints = useMemo(() => {
     if (!data?.points) return []
@@ -71,9 +91,9 @@ export default function App() {
       <div className="workspace-select"><span className="workspace-avatar">UK</span><span>United Kingdom</span><ChevronDown size={14} /></div>
       <div className="nav-section-label">ANALYTICS</div>
       <nav className="side-nav">
-        <a className="nav-item active" href="#overview" onClick={() => setMobileNav(false)}><BarChart3 size={17} />Overview<span className="nav-active-mark" /></a>
-        <a className="nav-item" href="#accuracy" onClick={() => setMobileNav(false)}><Gauge size={17} />Forecast accuracy</a>
-        <a className="nav-item" href="#uncertainty" onClick={() => setMobileNav(false)}><Activity size={17} />Uncertainty</a>
+        <a className={`nav-item${activeSection === 'overview' ? ' active' : ''}`} href="#overview" aria-current={activeSection === 'overview' ? 'location' : undefined} onClick={() => { setActiveSection('overview'); setMobileNav(false) }}><BarChart3 size={17} />Overview<span className="nav-active-mark" /></a>
+        <a className={`nav-item${activeSection === 'accuracy' ? ' active' : ''}`} href="#accuracy" aria-current={activeSection === 'accuracy' ? 'location' : undefined} onClick={() => { setActiveSection('accuracy'); setMobileNav(false) }}><Gauge size={17} />Forecast accuracy<span className="nav-active-mark" /></a>
+        <a className={`nav-item${activeSection === 'uncertainty' ? ' active' : ''}`} href="#uncertainty" aria-current={activeSection === 'uncertainty' ? 'location' : undefined} onClick={() => { setActiveSection('uncertainty'); setMobileNav(false) }}><Activity size={17} />Uncertainty<span className="nav-active-mark" /></a>
       </nav>
       <div className="sidebar-bottom">
         <div className="market-card"><div className="market-card-head"><span className="live-pulse" />MARKET DATA</div><strong>BMRS <span>● Connected</span></strong><small>National wind · 30 min</small></div>
@@ -81,14 +101,14 @@ export default function App() {
       </div>
     </aside>
 
-    <main className="main-content" id="overview">
+    <main className="main-content">
       <header className="topbar">
         <div className="breadcrumb"><button className="mobile-menu icon-button" onClick={() => setMobileNav(true)} aria-label="Open navigation"><Menu size={19} /></button><span>Analytics</span><span className="crumb-slash">/</span><strong>Wind intelligence</strong></div>
         <div className="topbar-actions"><div className="period-pill"><CalendarDays size={14} /><span>JAN 01 — 31, 2026</span><span className="period-dot" /></div><button className="icon-button theme-toggle" onClick={() => setDark(!dark)} aria-label="Toggle theme">{dark ? <Sun size={17} /> : <Moon size={17} />}</button><button className="icon-button" aria-label="Help" onClick={() => setShowMethod(!showMethod)}><CircleHelp size={17} /></button></div>
       </header>
 
       <div className="content-wrap">
-        <section className="page-heading">
+        <section className="page-heading" id="overview">
           <div><div className="eyebrow"><span className="eyebrow-line" />PROCUREMENT INTELLIGENCE <span className="eyebrow-sep">/</span> NATIONAL WIND</div><h1>Wind forecast <em>intelligence</em></h1><p className="page-subtitle">January 2026 retrospective · See what the wind delivered and how the day-ahead call performed.</p></div>
           <div className="heading-actions"><span className={`data-status ${hasError ? 'data-status-error' : ''}`}><span className="status-dot" />{isLoading ? 'Connecting to BMRS' : hasError ? 'Data unavailable' : 'BMRS data feed'}</span><button className="button-secondary" onClick={() => refreshDashboard()} disabled={isFetching || isRefreshing}><RefreshCw size={14} className={isFetching || isRefreshing ? 'spin' : ''} />Refresh</button><button className="button-primary" onClick={downloadCsv} disabled={!data?.points.length}><Download size={14} />Export data</button></div>
         </section>

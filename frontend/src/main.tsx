@@ -4,6 +4,7 @@ import { Provider } from 'react-redux'
 import { store } from './store'
 import App from './App'
 import './styles.css'
+import './theme-overrides.css'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
